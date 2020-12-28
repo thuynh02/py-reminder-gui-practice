@@ -1,6 +1,8 @@
 import time
 import os
 import yaml
+import re
+import subprocess
 from datetime import datetime
 from utils.system_tray import init_tray
 
@@ -11,7 +13,7 @@ DEFAULT_FADE_IN = 100
 DEFAULT_FADE_OUT = 2000
 
 
-def handle_tray_events(tray, menu_config):
+def handle_tray_events(tray, menu_config, watchlist_config):
     prompted = False
     while ON_STATE:
 
@@ -23,24 +25,36 @@ def handle_tray_events(tray, menu_config):
         # do some action at a repeating interval
         on_interval = datetime.now().minute % 2 == 0
         if (on_interval) and (not prompted):
-            handle_interval_action(tray, menu_config)
+            handle_interval_action(tray, menu_config, watchlist_config)
             prompted = True
         elif not on_interval and prompted:
             prompted = False
 
 
-def handle_interval_action(tray, menu_config):
+def handle_interval_action(tray, menu_config, watchlist_config):
     tray.show_message(
         title="Scheduled Event",
         message=f"The time is: {datetime.now().ctime()}",
         time=(DEFAULT_FADE_IN, DEFAULT_FADE_OUT),
     )
+    evaluate_current_tasks(watchlist_config)
 
-    evaluate_current_tasks()
+
+def get_tasklist():
+    tasks = str(subprocess.check_output(["tasklist"])).split("\\r\\n")
+    p = []
+    for task in tasks:
+        m = re.match("(.+?) +(\d+) (.+?) +(\d+) +(\d+.* K).*", task)
+        if m is not None:
+            p.append(m.group(1))
+    return p
 
 
-def evaluate_current_tasks():
-    print("evaluating")
+def evaluate_current_tasks(watchlist_config):
+    print(f"evaluating: {watchlist_config}")
+
+    tasklist = get_tasklist()
+    print(tasklist)
 
 
 def handle_test_option():
@@ -52,7 +66,7 @@ def handle_exit():
     ON_STATE = False
 
 
-def get_watchlist_actions(watchlist_path):
+def get_watchlist_config(watchlist_path):
     watchlist_obj = {}
     with open(watchlist_path, "r") as watchlist_f:
         watchlist_content = watchlist_f.read()
@@ -63,6 +77,8 @@ def get_watchlist_actions(watchlist_path):
 
 def main():
     dirname = os.path.dirname(__file__)
+
+    # set vars for tray + its menu
     menu_config = {
         "Test": {
             ACTION_CONFIG_KEY: handle_test_option,
@@ -72,13 +88,16 @@ def main():
     }
     icon_path = os.path.join(dirname, "./icon.png")
     menu_options = list(menu_config.keys())
+    tray = init_tray(menu_options=menu_options, icon_path=icon_path)
 
+    # set vars for watchlist
     watchlist_path = os.path.join(dirname, "./watchlist.yml")
-    watchlist_actions = get_watchlist_actions(watchlist_path)
-    print(watchlist_actions)
+    watchlist_config = get_watchlist_config(watchlist_path)
 
-    tray = init_tray(menu_options=menu_options, watchlist_options=watchlist_actions icon_path=icon_path)
-    handle_tray_events(tray, menu_config)
+    # make the tray do stuff!
+    handle_tray_events(
+        tray=tray, menu_config=menu_config, watchlist_config=watchlist_config
+    )
 
 
 if __name__ == "__main__":
