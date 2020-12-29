@@ -18,7 +18,7 @@ DEFAULT_LOGO = b"iVBORw0KGgoAAAANSUhEUgAAACEAAAAgCAMAAACrZuH4AAAABGdBTUEAALGPC/x
 DEFAULT_MENU = ["My", "Simple", "---", "Menu", "Exit"]
 
 
-def init_tray(menu_options=DEFAULT_MENU, icon_path=None, tray_icon=DEFAULT_ICON):
+def init_tray(menu_options=DEFAULT_MENU, icon_path=None):
     target_menu = ["None", menu_options]
     target_icon = DEFAULT_LOGO if icon_path is None else encode_file(icon_path)
 

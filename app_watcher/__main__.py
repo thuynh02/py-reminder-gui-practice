@@ -29,7 +29,8 @@ CHECKLIST_MEMO = {}
 def main():
     # set vars for watchlist
     watchlist_path = files.resource_path(
-        relative_path="./watchlist.yml", relative_to=os.path.abspath(__file__)
+        relative_path=f".{os.path.sep}watchlist.yml",
+        relative_to=os.path.abspath(__file__),
     )
     watchlist = get_watchlist(watchlist_path)
 
@@ -47,7 +48,7 @@ def main():
 
     # setting up the tray
     icon_path = files.resource_path(
-        relative_path="./icon.png", relative_to=os.path.abspath(__file__)
+        relative_path=f".{os.path.sep}icon.png", relative_to=os.path.abspath(__file__)
     )
     menu_options = list(menu_config.keys())
     tray = init_tray(menu_options=menu_options, icon_path=icon_path)
