@@ -1,11 +1,11 @@
 # the "checklist" type will present a one-time checklist starting from a provided time for the listed apps
 # multiple checklist objects can be given
 checklist:
-  - apps:
-      - "RiotClientServices"
+  - name: "Be clean before gaming"
+    apps:
+      - "RiotClientServices.exe"
     items:
       - "Are dishes done?"
       - "Taken a shower yet?"
       - "Check if you need to take out the garbage"
-    start_time:
-      - "18:00:00"
+    start_time: "20:00:00"
