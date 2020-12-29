@@ -1,11 +1,13 @@
-import time
 import os
+import sys
+import time
 import yaml
 import psutil
 import ahocorasick
-import utils.checklist as utils_cl
 from datetime import datetime
-from utils.system_tray import init_tray
+from .utils import checklist as utils_cl
+from .utils import files
+from .utils.system_tray import init_tray
 
 
 ON_STATE = True
@@ -25,19 +27,30 @@ CHECKLIST_MEMO = {}
 
 
 def main():
-    dirname = os.path.dirname(__file__)
+    # set vars for watchlist
+    watchlist_path = files.resource_path(
+        relative_path="./watchlist.yml", relative_to=os.path.abspath(__file__)
+    )
+    watchlist = get_watchlist(watchlist_path)
 
-    # set vars for tray + its menu
-    menu_config = {
-        "Exit": {ACTION_CONFIG_KEY: do_exit, TIME_CONFIG_KEY: (0, 0)},
-    }
-    icon_path = os.path.join(dirname, "./icon.png")
+    # menu options to manually trigger each checklist prompt (preemptive completion)
+    menu_config = {}
+    for checklist in watchlist[WATCHLIST_CHECKLIST_KEY]:
+        checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
+        menu_config[f'Open "{checklist_name}"'] = {
+            ACTION_CONFIG_KEY: lambda: do_manual_checklist(checklist),
+            TIME_CONFIG_KEY: (0, 0),
+        }
+
+    # menu option to exit the watcher
+    menu_config["Exit"] = {ACTION_CONFIG_KEY: do_exit, TIME_CONFIG_KEY: (0, 0)}
+
+    # setting up the tray
+    icon_path = files.resource_path(
+        relative_path="./icon.png", relative_to=os.path.abspath(__file__)
+    )
     menu_options = list(menu_config.keys())
     tray = init_tray(menu_options=menu_options, icon_path=icon_path)
-
-    # set vars for watchlist
-    watchlist_path = os.path.join(dirname, "./watchlist.yml")
-    watchlist = get_watchlist(watchlist_path)
 
     # make the tray do stuff!
     handle_tray_events(tray=tray, menu_config=menu_config, watchlist=watchlist)
@@ -53,7 +66,7 @@ def handle_tray_events(tray, menu_config, watchlist):
             menu_config[event][ACTION_CONFIG_KEY]()
 
         # do some action at a repeating interval
-        on_interval = datetime.now().second % 5  # every minute
+        on_interval = datetime.now().second == 45  # every minute
         if (on_interval) and (not prompted):
             handle_interval_action(tray, menu_config, watchlist)
             prompted = True
@@ -79,6 +92,17 @@ def do_exit():
     ON_STATE = False
 
 
+def do_manual_checklist(checklist):
+    global CHECKLIST_MEMO
+    utils_cl.display(
+        config=checklist,
+        can_cancel=True,
+        done_callback=lambda: update_checklist_memo(
+            checklist[utils_cl.NAME_CONFIG_KEY]
+        ),
+    )
+
+
 def process_watchlist(watchlist):
     # index tasks by
     task_list = get_task_list()
@@ -96,13 +120,21 @@ def process_checklist_type(checklists, task_list):
         checklist_target_apps = checklist[utils_cl.APPS_CONFIG_KEY]
         checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
 
-        trimmed_apps = [trim_extension(app) for app in checklist_target_apps]
+        trimmed_apps = [files.trim_extension(app) for app in checklist_target_apps]
         app_is_present = lhs_has_items_in_rhs(lhs=trimmed_apps, rhs=task_list)
         should_trigger = checklist_should_trigger(checklist, CHECKLIST_MEMO)
 
         if app_is_present and should_trigger:
-            CHECKLIST_MEMO[checklist_name] = datetime.now()
-            utils_cl.display(config=checklist)
+            utils_cl.display(
+                config=checklist,
+                done_callback=lambda: update_checklist_memo(checklist_name),
+            )
+
+
+def update_checklist_memo(checklist_name):
+    global CHECKLIST_MEMO
+    print(f'updating checklist memo for "{checklist_name}"')
+    CHECKLIST_MEMO[checklist_name] = datetime.now()
 
 
 def checklist_should_trigger(checklist, checklist_memo):
@@ -140,7 +172,7 @@ def get_task_list():
 
     # get list of distinct tasks
     for proc in psutil.process_iter(["name"]):
-        p.add(trim_extension(proc.info["name"]))  # remove extension
+        p.add(files.trim_extension(proc.info["name"]))  # remove extension
     p = list(p)
     p.sort()
 
@@ -178,10 +210,6 @@ def lhs_has_items_in_rhs(lhs, rhs):
             break
 
     return result
-
-
-def trim_extension(filename):
-    return filename.lower().rsplit(".", 1)[0]
 
 
 if __name__ == "__main__":

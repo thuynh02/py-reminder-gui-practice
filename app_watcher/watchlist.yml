@@ -3,9 +3,13 @@
 checklist:
   - name: "Be clean before gaming"
     apps:
-      - "RiotClientServices.exe"
+      - "RiotClientServices"
+      - "Gw2-64"
+      - "EpicGamesLauncher"
+      - "SteamService"
     items:
       - "Are dishes done?"
       - "Taken a shower yet?"
-      - "Check if you need to take out the garbage"
-    start_time: "20:00:00"
+      - "Garbage needed to be emptied?"
+      - "All the pans off the stove?"
+    start_time: "15:07:00"

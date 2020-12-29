@@ -6,11 +6,15 @@ START_TIME_CONFIG_KEY = "start_time"
 NAME_CONFIG_KEY = "name"
 
 
-def display(config):
+def display(config, can_cancel=False, done_callback=None, cancel_callback=None):
     layout = []
     for item in config[ITEMS_CONFIG_KEY]:
         layout.append([sg.Checkbox(text=item, enable_events=True)])
     layout.append([sg.Exit(button_text="Done!", key="done", disabled=True)])
+
+    if can_cancel:
+        layout.append([sg.Cancel(key="cancel")])
+
     window = sg.Window(
         title=config[NAME_CONFIG_KEY],
         layout=layout,
@@ -23,6 +27,10 @@ def display(config):
         event, values = window.read()
         print(event)
         if event == sg.WIN_CLOSED or event == "done":
+            done_callback()
+            break
+
+        if event == "cancel":
             break
 
         if all([val for (key, val) in values.items()]):
