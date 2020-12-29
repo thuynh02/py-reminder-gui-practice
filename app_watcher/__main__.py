@@ -66,7 +66,7 @@ def handle_tray_events(tray, menu_config, watchlist):
             menu_config[event][ACTION_CONFIG_KEY]()
 
         # do some action at a repeating interval
-        on_interval = datetime.now().second == 45  # every minute
+        on_interval = datetime.now().second == 0  # every minute
         if (on_interval) and (not prompted):
             handle_interval_action(tray, menu_config, watchlist)
             prompted = True
@@ -74,7 +74,7 @@ def handle_tray_events(tray, menu_config, watchlist):
             prompted = False
 
         # give cpu time to breath
-        time.sleep(0.001)
+        time.sleep(0.01)
 
 
 def handle_interval_action(tray, menu_config, watchlist):

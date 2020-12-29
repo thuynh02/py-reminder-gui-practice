@@ -29,5 +29,5 @@ def init_tray(menu_options=DEFAULT_MENU, icon_path=None, tray_icon=DEFAULT_ICON)
     tray_icon = tray.window
     tray_icon.Move(screen_size[0] - 50, screen_size[1] - 80)
     tray_icon.SetAlpha(0.3)
-    tray.show_message("Starting", "Now Starting the application", time=(100, 1000))
+    tray_icon.GrabAnyWhereOff()
     return tray
