@@ -12,8 +12,12 @@ checklist:
       - "Taken a shower yet?"
       - "Garbage needed to be emptied?"
       - "All the pans off the stove?"
-    start_time: "18:00:00"
+    cron: "* 18-23 * * *"
   - name: "Post-Dinner Cleanup"
     items:
       - "Cleared all dishes?"
-    start_time: "21:30:00"
+    cron: "* 21-23 * * *"
+  - name: "Spotless Stove Sunday!"
+    items:
+      - "Cleaned the stove?"
+    cron: "* 21-23 * * SUN"

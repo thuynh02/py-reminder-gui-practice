@@ -4,6 +4,7 @@ import time
 import yaml
 import psutil
 import ahocorasick
+import cronex
 from datetime import datetime
 from .utils import checklist as utils_cl
 from .utils import files
@@ -67,7 +68,7 @@ def handle_tray_events(tray, menu_config, watchlist):
             menu_config[event][ACTION_CONFIG_KEY]()
 
         # do some action at a repeating interval
-        on_interval = datetime.now().second % 15 == 0
+        on_interval = datetime.now().second % 10 == 0
         if (on_interval) and (not prompted):
             handle_interval_action(tray, menu_config, watchlist)
             prompted = True
@@ -145,16 +146,19 @@ def update_checklist_memo(checklist_name):
 
 
 def checklist_should_trigger(checklist, checklist_memo):
-    # assume the checklist value is in the right TIME_FORMAT
     checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
-    checklist_start = checklist[utils_cl.START_TIME_CONFIG_KEY]
-    current_invocation = datetime.now()
+    checklist_cron = checklist[utils_cl.CRON_CONFIG_KEY]
+    current_invocation = time.gmtime(time.time())[:5]
 
-    after_start_time = checklist_start <= current_invocation.strftime(TIME_FORMAT)
+    # check if the current invocation would fall in the range of this cron expression
+    cron_eval = cronex.CronExpression(checklist_cron.strip())
+    should_trigger = cron_eval.check_trigger(current_invocation)
+
+    # check if we already triggered this today
     already_triggered_today = checklist_was_triggered_today(
         checklist_name, checklist_memo
     )
-    result = after_start_time and not already_triggered_today
+    result = should_trigger and not already_triggered_today
 
     return result
 

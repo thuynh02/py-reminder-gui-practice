@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 
 APPS_CONFIG_KEY = "apps"
 ITEMS_CONFIG_KEY = "items"
-START_TIME_CONFIG_KEY = "start_time"
+CRON_CONFIG_KEY = "cron"
 NAME_CONFIG_KEY = "name"
 
 

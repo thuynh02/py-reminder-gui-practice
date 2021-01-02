@@ -11,6 +11,7 @@ setup(
         "pyahocorasick=1.4.0",
         "pyyaml=5.3.1",
         "pysimplegui=4.32.1",
+        "cronex=0.1.3.1",
     ],
     entry_points={"console_scripts": ["app_watcher=app_watcher.__main__:main"]},
 )
