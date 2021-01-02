@@ -148,7 +148,7 @@ def update_checklist_memo(checklist_name):
 def checklist_should_trigger(checklist, checklist_memo):
     checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
     checklist_cron = checklist[utils_cl.CRON_CONFIG_KEY]
-    current_invocation = time.gmtime(time.time())[:5]
+    current_invocation = time.localtime(time.time())[:5]
 
     # check if the current invocation would fall in the range of this cron expression
     cron_eval = cronex.CronExpression(checklist_cron.strip())
