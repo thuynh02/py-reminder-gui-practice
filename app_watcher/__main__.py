@@ -67,7 +67,7 @@ def handle_tray_events(tray, menu_config, watchlist):
             menu_config[event][ACTION_CONFIG_KEY]()
 
         # do some action at a repeating interval
-        on_interval = datetime.now().second == 0  # every minute
+        on_interval = datetime.now().second % 15 == 0
         if (on_interval) and (not prompted):
             handle_interval_action(tray, menu_config, watchlist)
             prompted = True
@@ -118,14 +118,20 @@ def process_checklist_type(checklists, task_list):
     global CHECKLIST_MEMO
 
     for checklist in checklists:
-        checklist_target_apps = checklist[utils_cl.APPS_CONFIG_KEY]
+        checklist_target_apps = checklist.get(utils_cl.APPS_CONFIG_KEY, [])
         checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
 
         trimmed_apps = [files.trim_extension(app) for app in checklist_target_apps]
-        app_is_present = lhs_has_items_in_rhs(lhs=trimmed_apps, rhs=task_list)
+        empty_target_apps = len(trimmed_apps) == 0
+
+        app_is_present = (
+            lhs_has_items_in_rhs(lhs=trimmed_apps, rhs=task_list)
+            if not empty_target_apps
+            else False
+        )
         should_trigger = checklist_should_trigger(checklist, CHECKLIST_MEMO)
 
-        if app_is_present and should_trigger:
+        if (empty_target_apps or app_is_present) and should_trigger:
             utils_cl.display(
                 config=checklist,
                 done_callback=lambda: update_checklist_memo(checklist_name),

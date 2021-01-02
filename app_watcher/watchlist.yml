@@ -12,4 +12,8 @@ checklist:
       - "Taken a shower yet?"
       - "Garbage needed to be emptied?"
       - "All the pans off the stove?"
-    start_time: "19:30:00"
+    start_time: "18:00:00"
+  - name: "Post-Dinner Cleanup"
+    items:
+      - "Cleared all dishes?"
+    start_time: "21:30:00"
