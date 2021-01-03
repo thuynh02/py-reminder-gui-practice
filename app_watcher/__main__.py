@@ -13,6 +13,7 @@ from .utils.system_tray import init_tray
 
 ON_STATE = True
 ACTION_CONFIG_KEY = "action"
+PARAMS_CONFIG_KEY = "params"
 TIME_CONFIG_KEY = "time"
 WATCHLIST_CHECKLIST_KEY = "checklist"
 TIME_FORMAT = "%H:%M:%S"
@@ -40,7 +41,8 @@ def main():
     for checklist in watchlist[WATCHLIST_CHECKLIST_KEY]:
         checklist_name = checklist[utils_cl.NAME_CONFIG_KEY]
         menu_config[f'Open "{checklist_name}"'] = {
-            ACTION_CONFIG_KEY: lambda: do_manual_checklist(checklist),
+            ACTION_CONFIG_KEY: do_manual_checklist,
+            PARAMS_CONFIG_KEY: {"checklist": checklist},
             TIME_CONFIG_KEY: (0, 0),
         }
 
@@ -65,7 +67,8 @@ def handle_tray_events(tray, menu_config, watchlist):
         # react to events using the given config
         event = tray.read(timeout=1)
         if event in menu_config:
-            menu_config[event][ACTION_CONFIG_KEY]()
+            action_params = menu_config[event].get(PARAMS_CONFIG_KEY, {})
+            menu_config[event][ACTION_CONFIG_KEY](**action_params)
 
         # do some action at a repeating interval
         on_interval = datetime.now().second % 10 == 0
@@ -95,7 +98,6 @@ def do_exit():
 
 
 def do_manual_checklist(checklist):
-    global CHECKLIST_MEMO
     utils_cl.display(
         config=checklist,
         can_cancel=True,
